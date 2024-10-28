@@ -21,6 +21,10 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Bus Stop from a config entry."""
+    # Create data storage for the entry
+    hass.data[DOMAIN][entry.entry_id] = {} 
+
+    # Your existing code to setup platforms
     for platform in PLATFORMS:
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(entry, platform)
