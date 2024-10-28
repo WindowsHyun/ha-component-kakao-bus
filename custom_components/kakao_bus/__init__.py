@@ -21,7 +21,10 @@ async def async_setup(hass: HomeAssistant, config: dict):
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Bus Stop from a config entry."""
     # Forward setup to the sensor platform
-    hass.config_entries.async_setup_platforms(entry, PLATFORMS)
+    for platform in PLATFORMS:
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(entry, platform)
+        )
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
