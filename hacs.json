@@ -1,0 +1,6 @@
+{
+    "name": "[KR] 카카오 버스 정보",
+    "country": "KR",
+    "domains": ["sensor"],
+    "render_readme": true
+}
