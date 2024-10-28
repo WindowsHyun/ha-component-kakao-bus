@@ -20,11 +20,15 @@ class BusStopConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
+            bus_stop_name = user_input[CONF_BUS_STOP_NAME]
+            bus_stop_id = user_input[CONF_BUS_STOP_ID]
+            title = f"{bus_stop_name} ({bus_stop_id})"
+
             return self.async_create_entry(
-                title=user_input[CONF_BUS_STOP_NAME],
+                title=title,
                 data={
-                    CONF_BUS_STOP_ID: user_input[CONF_BUS_STOP_ID],
-                    CONF_BUS_STOP_NAME: user_input[CONF_BUS_STOP_NAME],
+                    CONF_BUS_STOP_ID: bus_stop_id,
+                    CONF_BUS_STOP_NAME: bus_stop_name,
                 }
             )
 
