@@ -9,6 +9,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from datetime import timedelta
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.entity import DeviceInfo
 
 from .const import DOMAIN, CONF_BUS_STOP_ID, CONF_BUS_STOP_NAME
 
@@ -30,8 +32,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     for bus_data in coordinator.data.get("busesList", []):
         bus_name = bus_data.get("name")
         if bus_name:
-            sensors.append(BusArrivalSensor(coordinator, bus_stop_name, bus_name))
-            sensors.append(BusLocationSensor(coordinator, bus_stop_name, bus_name))
+            sensors.append(
+                BusArrivalSensor(
+                    coordinator, bus_stop_name, bus_name, bus_stop_id
+                )
+            )
+            sensors.append(
+                BusLocationSensor(
+                    coordinator, bus_stop_name, bus_name, bus_stop_id
+                )
+            )
     async_add_entities(sensors)
 
 class BusDataCoordinator(DataUpdateCoordinator):
@@ -64,14 +74,15 @@ class BusDataCoordinator(DataUpdateCoordinator):
         except aiohttp.ClientError as error:
             raise UpdateFailed(f"Error communicating with Kakao API: {error}") from error
 
-class BusArrivalSensor(Entity):
+class BusArrivalSensor(SensorEntity):
     """Representation of a Bus Arrival Time sensor."""
 
-    def __init__(self, coordinator, bus_stop_name, bus_name):
+    def __init__(self, coordinator, bus_stop_name, bus_name, bus_stop_id):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self._bus_stop_name = bus_stop_name
         self._bus_name = bus_name
+        self._bus_stop_id = bus_stop_id
         self._name = f"{self._bus_stop_name} {self._bus_name} 남은시간"
         self._arrival_message = None
         self._available = False
@@ -102,11 +113,19 @@ class BusArrivalSensor(Entity):
 
         False if entity pushes its state to HA.
         """
-        return True # 폴링 방식으로 변경
+        return True  # 폴링 방식으로 변경
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._bus_stop_id)},
+            name=self._bus_stop_name,
+        )
 
     async def async_update(self):
         """Update the sensor state from the coordinator data."""
-        await self.coordinator.async_refresh() # coordinator 업데이트
+        await self.coordinator.async_refresh()  # coordinator 업데이트
         self._available = False
         for bus_data in self.coordinator.data.get("busesList", []):
             if bus_data.get("name") == self._bus_name:
@@ -114,14 +133,15 @@ class BusArrivalSensor(Entity):
                 self._available = True
                 break
 
-class BusLocationSensor(Entity):
+class BusLocationSensor(SensorEntity):
     """Representation of a Bus Current Location sensor."""
 
-    def __init__(self, coordinator, bus_stop_name, bus_name):
+    def __init__(self, coordinator, bus_stop_name, bus_name, bus_stop_id):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self._bus_stop_name = bus_stop_name
         self._bus_name = bus_name
+        self._bus_stop_id = bus_stop_id
         self._name = f"{self._bus_stop_name} {self._bus_name} 현재 정류장"
         self._current_bus_stop = None
         self._available = False
@@ -152,11 +172,19 @@ class BusLocationSensor(Entity):
 
         False if entity pushes its state to HA.
         """
-        return True # 폴링 방식으로 변경
+        return True  # 폴링 방식으로 변경
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._bus_stop_id)},
+            name=self._bus_stop_name,
+        )
 
     async def async_update(self):
         """Update the sensor state from the coordinator data."""
-        await self.coordinator.async_refresh() # coordinator 업데이트
+        await self.coordinator.async_refresh()  # coordinator 업데이트
         self._available = False
         for bus_data in self.coordinator.data.get("busesList", []):
             if bus_data.get("name") == self._bus_name:
