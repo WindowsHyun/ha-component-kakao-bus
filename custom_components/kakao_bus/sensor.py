@@ -74,6 +74,7 @@ class BusArrivalSensor(Entity):
         self._bus_name = bus_name
         self._name = f"{self._bus_stop_name} {self._bus_name} 남은시간"
         self._arrival_message = None
+        self._available = False
 
     @property
     def name(self):
@@ -91,27 +92,27 @@ class BusArrivalSensor(Entity):
         return self._arrival_message
 
     @property
+    def available(self):
+        """Return True if entity is available."""
+        return self._available
+
+    @property
     def should_poll(self) -> bool:
         """Return True if entity has to be polled for state.
 
         False if entity pushes its state to HA.
         """
-        return False
+        return True # 폴링 방식으로 변경
 
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self._update_from_coordinator)
-        )
-        await self._update_from_coordinator()
-
-    async def _update_from_coordinator(self):
+    async def async_update(self):
         """Update the sensor state from the coordinator data."""
+        await self.coordinator.async_refresh() # coordinator 업데이트
+        self._available = False
         for bus_data in self.coordinator.data.get("busesList", []):
             if bus_data.get("name") == self._bus_name:
                 self._arrival_message = bus_data.get("vehicleStateMessage")
+                self._available = True
                 break
-        self.async_write_ha_state()
 
 class BusLocationSensor(Entity):
     """Representation of a Bus Current Location sensor."""
@@ -123,6 +124,7 @@ class BusLocationSensor(Entity):
         self._bus_name = bus_name
         self._name = f"{self._bus_stop_name} {self._bus_name} 현재 정류장"
         self._current_bus_stop = None
+        self._available = False
 
     @property
     def name(self):
@@ -140,24 +142,24 @@ class BusLocationSensor(Entity):
         return self._current_bus_stop
 
     @property
+    def available(self):
+        """Return True if entity is available."""
+        return self._available
+
+    @property
     def should_poll(self) -> bool:
         """Return True if entity has to be polled for state.
 
         False if entity pushes its state to HA.
         """
-        return False
+        return True # 폴링 방식으로 변경
 
-    async def async_added_to_hass(self) -> None:
-        """When entity is added to hass."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self._update_from_coordinator)
-        )
-        await self._update_from_coordinator()
-
-    async def _update_from_coordinator(self):
+    async def async_update(self):
         """Update the sensor state from the coordinator data."""
+        await self.coordinator.async_refresh() # coordinator 업데이트
+        self._available = False
         for bus_data in self.coordinator.data.get("busesList", []):
             if bus_data.get("name") == self._bus_name:
                 self._current_bus_stop = bus_data.get("currentBusStopName")
+                self._available = True
                 break
-        self.async_write_ha_state()
