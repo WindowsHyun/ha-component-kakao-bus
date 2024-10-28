@@ -1,3 +1,4 @@
+"""Platform for sensor."""
 import logging
 import asyncio
 
@@ -70,14 +71,14 @@ class BusStopSensor(Entity):
         self.coordinator = coordinator
         self._bus_stop_name = bus_stop_name
         self._bus_name = bus_name
-        self._name = f"Bus {self._bus_name}"
+        self._name = f"{self._bus_name}" # 센서 이름 형식 변경
         self._current_bus_stop = None
         self._arrival_message = None
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._bus_stop_name} {self._name}"
+        return self._name
 
     @property
     def unique_id(self):
@@ -93,7 +94,7 @@ class BusStopSensor(Entity):
     def extra_state_attributes(self):
         """Return the state attributes."""
         return {
-            "current_bus_stop": self._current_bus_stop,
+            "current_bus_stop": self._current_bus_stop, # currentBusStopName 속성 추가
         }
 
     @property
