@@ -42,6 +42,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                     coordinator, bus_stop_name, bus_name, bus_stop_id
                 )
             )
+            sensors.append(
+                BusRemainSeatSensor(
+                    coordinator, bus_stop_name, bus_name, bus_stop_id
+                )
+            )
     async_add_entities(sensors)
 
 class BusDataCoordinator(DataUpdateCoordinator):
@@ -189,5 +194,64 @@ class BusLocationSensor(SensorEntity):
         for bus_data in self.coordinator.data.get("busesList", []):
             if bus_data.get("name") == self._bus_name:
                 self._current_bus_stop = bus_data.get("currentBusStopName")
+                self._available = True
+                break
+
+class BusRemainSeatSensor(SensorEntity):
+    """Representation of a Bus Remain Seat sensor."""
+
+    def __init__(self, coordinator, bus_stop_name, bus_name, bus_stop_id):
+        """Initialize the sensor."""
+        self.coordinator = coordinator
+        self._bus_stop_name = bus_stop_name
+        self._bus_name = bus_name
+        self._bus_stop_id = bus_stop_id
+        self._name = f"{self._bus_stop_name} {self._bus_name} 잔여석"
+        self._remain_seat = None
+        self._available = False
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        return self._name
+
+    @property
+    def unique_id(self):
+        """Return a unique ID for the sensor."""
+        return f"{DOMAIN}_{self._bus_stop_name}_{self._bus_name}_remain_seat"
+
+    @property
+    def state(self):
+        """Return the state of the sensor."""
+        return self._remain_seat
+
+    @property
+    def available(self):
+        """Return True if entity is available."""
+        return self._available
+
+    @property
+    def should_poll(self) -> bool:
+        """Return True if entity has to be polled for state.
+
+        False if entity pushes its state to HA.
+        """
+        return True  # 폴링 방식으로 변경
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._bus_stop_id)},
+            name=self._bus_stop_name,
+        )
+
+    async def async_update(self):
+        """Update the sensor state from the coordinator data."""
+        await self.coordinator.async_refresh()  # coordinator 업데이트
+        self._available = False
+        for bus_data in self.coordinator.data.get("busesList", []):
+            if bus_data.get("name") == self._bus_name:
+                self._remain_seat = bus_data.get("remainSeat")
                 self._available = True
                 break
