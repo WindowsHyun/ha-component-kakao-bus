@@ -1,0 +1,11 @@
+{
+    "domain": "kakao_bus",
+    "name": "카카오 버스정보",
+    "documentation": "https://github.com/WindowsHyun/ha-component-kakao-bus",
+    "dependencies": [],
+    "codeowners": ["@WindowsHyun"],
+    "requirements": ["requests"],
+    "version": "0.1.0",
+    "config_flow": true,
+    "iot_class": "cloud_polling"
+  }

@@ -1,0 +1,22 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "title": "버스 정류장 설정",
+          "description": "버스 정류장 정보를 입력하세요",
+          "data": {
+            "bus_stop_id": "버스 정류장 ID",
+            "bus_stop_name": "버스 정류장 이름"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "연결 실패",
+        "invalid_auth": "인증 실패",
+        "unknown": "알 수 없는 오류"
+      },
+      "abort": {
+        "already_configured": "이미 설정된 버스 정류장입니다"
+      }
+    }
+  }
